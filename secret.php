@@ -5,8 +5,8 @@ $errors = [];
 $success = false;
 //ovo govno se povezuje na bazu
 try {
-		$db = new PDO ("mysql:host=localhost;dbname=database","user","password");
-		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	$db = new PDO ("mysql:host=localhost;dbname=database","user","password");
+	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 }
 catch(PDOException $e){
        echo "E do kurca! Baza nešto jebe ale! <br>";
@@ -36,30 +36,26 @@ catch(PDOException $e){
 	$characters = array_merge(range('a','z'), range('0','9'), array('@', "[", "]") );
 	$max = count($characters) - 1;
 	for ($i = 0; $i < $length; $i++) {
-		$rand = mt_rand(0, $max);
-		$str .= $characters[$rand];
+	$rand = mt_rand(0, $max);
+	$str .= $characters[$rand];
 	}
 	return $str;
 }
     $random = rnd();
     $hash ='SM_' . $random;
 
-    $idk = $db->prepare("INSERT INTO messages (title, message, hash) VALUES (:title, :message, :hash)");
-    $idk-> bindParam(':title', $title);
-    $idk-> bindParam(':message', $message);
-    $idk-> bindParam(':hash', $hash);
-    $idk = $idk->execute();
-	
-	
-	
-	
-	
+    	$idk = $db->prepare("INSERT INTO messages (title, message, hash) VALUES (:title, :message, :hash)");
+    	$idk-> bindParam(':title', $title);
+    	$idk-> bindParam(':message', $message);
+    	$idk-> bindParam(':hash', $hash);
+    	$idk = $idk->execute();
+
 	$ip = $_SERVER['REMOTE_ADDR'];
 	date_default_timezone_set('Europe/Belgrade');      
 	$stamp=date("Y/m/d h:i:sa");
 	$idk2 = $db->prepare("INSERT INTO logs (title, message, ip, timestamp) VALUES (:title, :message, :ip, :timestamp)");
 	$idk2-> bindParam(':title', $title);
-    $idk2-> bindParam(':message', $message);
+   	$idk2-> bindParam(':message', $message);
 	$idk2-> bindParam(':ip', $ip);
 	$idk2-> bindParam(':timestamp', $stamp);
 	$idk2 = $idk2->execute();
@@ -85,14 +81,14 @@ catch(PDOException $e){
 	 if (strlen($hash) < 14)
 {
 	 $title = $result['title'];
-     $message = '<div id="idkhowtonamethis">' .'<p>'. $result['message'] . '<br><br><hr><center><strong>This message is a system notice</strong></center></p></div>';
+     	 $message = '<div id="idkhowtonamethis">' .'<p>'. $result['message'] . '<br><br><hr><center><strong>This message is a system notice</strong></center></p></div>';
 }
 
 elseif	(strlen($hash) == 14)
 {
-		$title = $result['title'];
-		$message = '<div id="idkhowtonamethis">' .'<p>'. $result['message'] . '<br><br><hr><center><strong>Btw, this message already have been deleted from the database! Press CTRL + F5 to clear local cache.</strong></center></p></div>';
-		$idk = $db->prepare("DELETE FROM messages WHERE hash = ?")->execute([$hash]);
+	$title = $result['title'];
+	$message = '<div id="idkhowtonamethis">' .'<p>'. $result['message'] . '<br><br><hr><center><strong>Btw, this message already have been deleted from the database! Press CTRL + F5 to clear local cache.</strong></center></p></div>';
+	$idk = $db->prepare("DELETE FROM messages WHERE hash = ?")->execute([$hash]);
    }} else {
      $title ='Fuyukai desu...';
      $message = '<p id="idkhowtonamethis"> How unpleasant... this message have been removed, or maybe it never existed? </p><img src="fuyukai.gif">';
@@ -137,7 +133,6 @@ function validate() {
 </head>
 <body>
 			<div id="card">
-			<!---- <div class="corner"><img src="cutie.png"></div> ---->
 			<div id="content">
 			<div id="title">
 			<h1>Girly.moe</h1>
@@ -164,7 +159,7 @@ function validate() {
         <p><input class="he" type="text" placeholder="Title of your message" name="title" value="<?=$title?>"></p>
         <p><textarea class="he" rows="5" cols="50" placeholder="Type your message here" name="message" value="<?=$message?>"></textarea></p>
         <p><button type="submit" class="he">Send</button></p>
-		<p>When you press 'Send', you will get an unique code that can be used only <strong>ONCE</strong>.</p>
+	<p>When you press 'Send', you will get an unique code that can be used only <strong>ONCE</strong>.</p>
       </form >
 
 	  <form id="idkhowtonamethis" action="" onsubmit="return validateForm()" name="code">
@@ -182,7 +177,7 @@ function validate() {
   <?php  } ?>
   <?php  } ?>
 
-			</div>
-			</div>
+	</div>
+	</div>
 </body>
 </html>
