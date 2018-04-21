@@ -4,16 +4,35 @@ $message = null;
 $errors = [];
 $success = false;
 //ovo govno se povezuje na bazu
+
+//btw i know it's messy af
 try {
-	$db = new PDO ("mysql:host=localhost;dbname=database","user","password");
-	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$db = new PDO ("mysql:host=localhost;dbname=database","username","password");
+		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 }
 catch(PDOException $e){
        echo "E do kurca! Baza nešto jebe ale! <br>";
        echo  $e->getMessage();
    }
 
-
+	function crypto( $string, $action = 'e' ) {
+    $secret_key = 'get-your-own';
+    $secret_iv = 'this-one-too';
+ 
+    $output = false;
+    $encrypt_method = "AES-256-CBC";
+    $key = hash( 'sha256', $secret_key );
+    $iv = substr( hash( 'sha256', $secret_iv ), 0, 16 );
+ 
+    if( $action == 'e' ) {
+        $output = base64_encode( openssl_encrypt( $string, $encrypt_method, $key, 0, $iv ) );
+    }
+    else if( $action == 'd' ){
+        $output = openssl_decrypt( base64_decode( $string ), $encrypt_method, $key, 0, $iv );
+    }
+ 
+    return $output;
+}
 
    if (!empty($_POST)) {
      if(!empty($_POST['title'])){
@@ -31,39 +50,28 @@ catch(PDOException $e){
    }
 
    if (!count($errors)) {
-	function rnd($length = 11) {
+	function rnd($length = 12) {
 	$str = "";
 	$characters = array_merge(range('a','z'), range('0','9'), array('@', "[", "]") );
 	$max = count($characters) - 1;
 	for ($i = 0; $i < $length; $i++) {
-	$rand = mt_rand(0, $max);
-	$str .= $characters[$rand];
+		$rand = mt_rand(0, $max);
+		$str .= $characters[$rand];
 	}
 	return $str;
 }
     $random = rnd();
-    $hash ='SM_' . $random;
+    $hash ='m_' . $random;
 
-    	$idk = $db->prepare("INSERT INTO messages (title, message, hash) VALUES (:title, :message, :hash)");
-    	$idk-> bindParam(':title', $title);
-    	$idk-> bindParam(':message', $message);
-    	$idk-> bindParam(':hash', $hash);
-    	$idk = $idk->execute();
-
-	$ip = $_SERVER['REMOTE_ADDR'];
-	date_default_timezone_set('Europe/Belgrade');      
-	$stamp=date("Y/m/d h:i:sa");
-	$idk2 = $db->prepare("INSERT INTO logs (title, message, ip, timestamp) VALUES (:title, :message, :ip, :timestamp)");
-	$idk2-> bindParam(':title', $title);
-   	$idk2-> bindParam(':message', $message);
-	$idk2-> bindParam(':ip', $ip);
-	$idk2-> bindParam(':timestamp', $stamp);
-	$idk2 = $idk2->execute();
-	
+    $idk = $db->prepare("INSERT INTO messages (title, message, hash) VALUES (:title, :message, :hash)");
+    $idk-> bindParam(':title', crypto( $title, 'e' ));
+    $idk-> bindParam(':message', crypto( $message, 'e' ));
+    $idk-> bindParam(':hash', $hash);
+    $idk = $idk->execute();
     if ($idk) $success = true;
 
    } else {
-    foreach ($errors as $error) {
+	  foreach ($errors as $error) {
       echo $error;
     }
 
@@ -76,19 +84,20 @@ catch(PDOException $e){
    $idk->execute();
    $result = $idk->fetch(PDO::FETCH_ASSOC);
    $count = $idk->rowCount();
+   
 
    if ($count){
 	 if (strlen($hash) < 14)
 {
 	 $title = $result['title'];
-     	 $message = '<div id="idkhowtonamethis">' .'<p>'. $result['message'] . '<br><br><hr><center><strong>This message is a system notice</strong></center></p></div>';
+     $message = '<div id="idkhowtonamethis">' .'<p>'. $result['message'] . '<br><br><hr><center><strong>This message is a system notice</strong></center></p></div>';
 }
 
 elseif	(strlen($hash) == 14)
 {
-	$title = $result['title'];
-	$message = '<div id="idkhowtonamethis">' .'<p>'. $result['message'] . '<br><br><hr><center><strong>Btw, this message already have been deleted from the database! Press CTRL + F5 to clear local cache.</strong></center></p></div>';
-	$idk = $db->prepare("DELETE FROM messages WHERE hash = ?")->execute([$hash]);
+		$title = crypto( $result['title'], 'd' );
+		$message = '<div id="idkhowtonamethis">' .'<p>'. crypto( $result['message'], 'd') . '<br><br><hr><center><strong>Btw, this message already have been deleted from the database! Press CTRL + F5 to clear local cache.</strong></center></p></div>';
+		$idk = $db->prepare("DELETE FROM messages WHERE hash = ?")->execute([$hash]);
    }} else {
      $title ='Fuyukai desu...';
      $message = '<p id="idkhowtonamethis"> How unpleasant... this message have been removed, or maybe it never existed? </p><img src="fuyukai.gif">';
@@ -133,6 +142,7 @@ function validate() {
 </head>
 <body>
 			<div id="card">
+			<!---- <div class="corner"><img src="cutie.png"></div> ---->
 			<div id="content">
 			<div id="title">
 			<h1>Girly.moe</h1>
@@ -151,23 +161,26 @@ function validate() {
       ?>
       <h1>secret message</h1>
 	  <?php unset($_POST); ?>
-      <form id="idkhowtonamethis"  action="" onsubmit="return validate()" name="send" method="post" >
-		<p style="color:red; background-color: #111;border-radius: 5px; padding: 5px;"> <strong>By submitting you agree with my</strong> <a href="?msg=privacy">privacy policy</a></p>
+	  <div  id="idkhowtonamethis">
+      <form action="" onsubmit="return validate()" name="send" method="post" >
+		<p style="color:red; background-color: #111;border-radius: 5px; padding: 5px;"> <strong>Logs are no longer kept. All messages are encrypted by AES-256-CBC algorithm </a></p>
 		<p style="color:red; background-color: #111;border-radius: 5px; padding: 5px;"> <strong>Since y'all don't trust me check</strong> <a href="https://github.com/nonphobic/secretmsg">the source code</a></p>
         <p id="ohno1" style="color:white; background-color: #ba013d;border-radius: 5px;"></p>
         <p id="ohno2" style="color:white; background-color: #ba013d;border-radius: 5px;"></p>
         <p><input class="he" type="text" placeholder="Title of your message" name="title" value="<?=$title?>"></p>
         <p><textarea class="he" rows="5" cols="50" placeholder="Type your message here" name="message" value="<?=$message?>"></textarea></p>
         <p><button type="submit" class="he">Send</button></p>
-	<p>When you press 'Send', you will get an unique code that can be used only <strong>ONCE</strong>.</p>
-      </form >
-
-	  <form id="idkhowtonamethis" action="" onsubmit="return validateForm()" name="code">
+		<p>When you press 'Send', you will get an unique code that can be used only <strong>ONCE</strong>.</p>
+      </form>
+	  </div>
+	  <div  id="idkhowtonamethis">
+	  <form action="" onsubmit="return validateForm()" name="code">
 	  <p style="color:white; background-color: #ba013d;border-radius: 5px;">Use code "test" (without quotes), to test the system</p>
 	  <p>Recieved a message? paste your code here!</p>
 	  <p><input class="he" type="text" placeholder="enter code here" name="msg"><button type="submit" class="he">read the message!</button></p>
 	  <p id="ohno" style="color:white; background-color: #ba013d;border-radius: 5px;"></p>
 	  </form>
+	  </div>
     <?php }
     else { ?>
       <h1>Code generated!</h1>
@@ -177,7 +190,7 @@ function validate() {
   <?php  } ?>
   <?php  } ?>
 
-	</div>
-	</div>
+			</div>
+			</div>
 </body>
 </html>
