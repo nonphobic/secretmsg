@@ -7,15 +7,15 @@ $success = false;
 
 //btw i know it's messy af
 try {
-		$db = new PDO ("mysql:host=localhost;dbname=database","username","password");
-		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	$db = new PDO ("mysql:host=localhost;dbname=database","username","password");
+	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 }
 catch(PDOException $e){
        echo "E do kurca! Baza nešto jebe ale! <br>";
        echo  $e->getMessage();
    }
 
-	function crypto( $string, $action = 'e' ) {
+    function crypto( $string, $action = 'e' ) {
     $secret_key = 'get-your-own';
     $secret_iv = 'this-one-too';
  
